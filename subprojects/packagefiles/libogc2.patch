@@ -1,4 +1,4 @@
-From f376e1b0ad3bf5c41669fcbf41450216540e7bc3 Mon Sep 17 00:00:00 2001
+From e9c49bd7b36362b9465c760985b50f140bbf5bbc Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Wed, 29 Nov 2023 18:46:32 +0200
 Subject: [PATCH 1/7] Fix out-of-tree builds
@@ -11,7 +11,7 @@ Subject: [PATCH 1/7] Fix out-of-tree builds
  4 files changed, 40 insertions(+), 28 deletions(-)
 
 diff --git a/.github/workflows/continuous-integration-workflow.yml b/.github/workflows/continuous-integration-workflow.yml
-index df3c97d..ad07c48 100644
+index 7d80fa3..be31507 100644
 --- a/.github/workflows/continuous-integration-workflow.yml
 +++ b/.github/workflows/continuous-integration-workflow.yml
 @@ -39,7 +39,9 @@ jobs:
@@ -35,7 +35,7 @@ index d1a46b2..19afba3 100644
  deps
  include
 diff --git a/Doxyfile b/Doxyfile
-index 5e987e7..82e55e2 100644
+index c63a959..900f932 100644
 --- a/Doxyfile
 +++ b/Doxyfile
 @@ -74,7 +74,7 @@ PROJECT_ICON           =
@@ -57,7 +57,7 @@ index 5e987e7..82e55e2 100644
  #---------------------------------------------------------------------------
  # Configuration options related to the input files
 diff --git a/Makefile b/Makefile
-index c741a8a..702e3fb 100644
+index 949a7de..4cb95d4 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -10,6 +10,8 @@ ifeq ($(strip $(DEVKITPPC)),)
@@ -173,10 +173,10 @@ index c741a8a..702e3fb 100644
  	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
  	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
  	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc2
--	@cp -frv libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
--	@cp -frv gamecube_rules wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
-+	@cp -frv $(BASEDIR)/libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
-+	@cp -frv $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
+-	@cp -frv *_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
+-	@cp -frv *_rules $(DESTDIR)$(DEVKITPRO)/libogc2
++	@cp -frv $(BASEDIR)/*_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
++	@cp -frv $(BASEDIR)/*_rules $(DESTDIR)$(DEVKITPRO)/libogc2
  
  #---------------------------------------------------------------------------------
  uninstall:
@@ -190,8 +190,8 @@ index c741a8a..702e3fb 100644
 +	@tar -C $(BASEDIR) --exclude-vcs --exclude-vcs-ignores --exclude .github \
 +		-cvjf $(BUILDDIR)/libogc2-src-$(VERSTRING).tar.bz2 .
 +
-+	@cp $(BASEDIR)/libogc_license.txt $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules .
- 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
++	@cp $(BASEDIR)/*_license.txt $(BASEDIR)/*_rules .
+ 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt *_rules
  
  
 @@ -329,6 +337,7 @@ libs: $(LIBRARIES)
@@ -211,10 +211,10 @@ index c741a8a..702e3fb 100644
  
  -include $(DEPSDIR)/*.d
 -- 
-2.47.2
+2.50.1
 
 
-From f7af2086b8649846609baa5651c4fd20ca2b93ff Mon Sep 17 00:00:00 2001
+From 19d0d7ea5e16c9c6915eefbcc689ada99ed86c2b Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Wed, 29 Nov 2023 19:08:07 +0200
 Subject: [PATCH 2/7] Make optimization level configurable
@@ -224,7 +224,7 @@ Subject: [PATCH 2/7] Make optimization level configurable
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 702e3fb..15858d5 100644
+index 4cb95d4..81363bf 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -102,7 +102,8 @@ endif
@@ -238,10 +238,10 @@ index 702e3fb..15858d5 100644
  
  #---------------------------------------------------------------------------------
 -- 
-2.47.2
+2.50.1
 
 
-From bb86319812581dbae4b319b205e0a7a470e92a68 Mon Sep 17 00:00:00 2001
+From 68d83ed7e7319b05882726de0cd1525b8a8e36fb Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Wed, 29 Nov 2023 22:24:26 +0200
 Subject: [PATCH 3/7] Allow selective building of libraries and platforms
@@ -253,7 +253,7 @@ make -C build -f ../Makefile -j10 PLATFORMS=cube LIBRARIES=ogc  19.28s user 1.93
  1 file changed, 10 insertions(+), 7 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 15858d5..fc92c0d 100644
+index 81363bf..eb22312 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -186,7 +186,8 @@ WIIKEYBLIBOBJ	:=	usbkeyboard.o keyboard.o ukbdmap.o wskbdutil.o
@@ -285,7 +285,7 @@ index 15858d5..fc92c0d 100644
  	@tar -C $(BASEDIR) --exclude-vcs --exclude-vcs-ignores --exclude .github \
  		-cvjf $(BUILDDIR)/libogc2-src-$(VERSTRING).tar.bz2 .
 @@ -321,17 +322,19 @@ dist: wii cube install-headers
- 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
+ 	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt *_rules
  
  
 -LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a $(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
@@ -309,10 +309,10 @@ index 15858d5..fc92c0d 100644
  
  #---------------------------------------------------------------------------------
 -- 
-2.47.2
+2.50.1
 
 
-From 82362bc11f3069bc25602c29bac0129266ef7beb Mon Sep 17 00:00:00 2001
+From d752f30e3447d8f2c7c54c5557b81e40f51f8006 Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Thu, 30 Nov 2023 00:13:00 +0200
 Subject: [PATCH 4/7] Support custom prefix, incdir and libdir
@@ -339,7 +339,7 @@ index 19afba3..68c7041 100644
  docs
  warn.log
 diff --git a/Makefile b/Makefile
-index fc92c0d..ccdb5d8 100644
+index eb22312..7ba0efd 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,9 +2,16 @@
@@ -386,15 +386,15 @@ index fc92c0d..ccdb5d8 100644
 -	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc2
 -	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc2
 -	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc2
--	@cp -frv $(BASEDIR)/libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
--	@cp -frv $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules $(DESTDIR)$(DEVKITPRO)/libogc2
+-	@cp -frv $(BASEDIR)/*_license.txt $(DESTDIR)$(DEVKITPRO)/libogc2
+-	@cp -frv $(BASEDIR)/*_rules $(DESTDIR)$(DEVKITPRO)/libogc2
 +	@$(eval INSTALL_PREFIX := $(INSTALL_PREFIX)) # Expand
 +	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)
 +	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)/$(INCDEST)
 +	@cp -frv include/* -t $(DESTDIR)$(INSTALL_PREFIX)/$(INCDEST)
 +	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)/$(LIBDEST)
 +	@cp -frv lib/* -t $(DESTDIR)$(INSTALL_PREFIX)/$(LIBDEST)
-+	@cp -frv $(BASEDIR)/libogc_license.txt $(DESTDIR)$(INSTALL_PREFIX)
++	@cp -frv $(BASEDIR)/*_license.txt $(DESTDIR)$(INSTALL_PREFIX)
 +	@cp -frv $(RULES) $(DESTDIR)$(INSTALL_PREFIX)
  
  #---------------------------------------------------------------------------------
@@ -411,10 +411,10 @@ index fc92c0d..ccdb5d8 100644
  	@tar -C $(BASEDIR) --exclude-vcs --exclude-vcs-ignores --exclude .github \
  		-cvjf $(BUILDDIR)/libogc2-src-$(VERSTRING).tar.bz2 .
  
--	@cp $(BASEDIR)/libogc_license.txt $(BASEDIR)/gamecube_rules $(BASEDIR)/wii_rules .
--	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
-+	@cp $(BASEDIR)/libogc_license.txt .
-+	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt $(RULES)
+-	@cp $(BASEDIR)/*_license.txt $(BASEDIR)/*_rules .
+-	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt *_rules
++	@cp $(BASEDIR)/*_license.txt .
++	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib *_license.txt $(RULES)
  
  
  ifeq ($(strip $(LIBRARIES)),)
@@ -463,10 +463,10 @@ index 4c979ed..8a8b3f5 100644
  MACHDEP =  -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
  
 -- 
-2.47.2
+2.50.1
 
 
-From f451b7143976e6bec641904b50ac5542391e7ecf Mon Sep 17 00:00:00 2001
+From eb4bb478b393c75dd65bfaea854f77dde4389ae4 Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Thu, 30 Nov 2023 21:06:45 +0200
 Subject: [PATCH 5/7] Add meson wrapper
@@ -611,10 +611,10 @@ index 0000000..dd5db87
 +option('platform', type: 'combo', choices: ['cube', 'wii'])
 +option('libraries', type: 'array')
 -- 
-2.47.2
+2.50.1
 
 
-From cc6b8f8fd26f2154d9a034fbc284670ddf6b9b35 Mon Sep 17 00:00:00 2001
+From 360c5c72880f6d1eaeb54fbe14c4dda61ccf4f7c Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Tue, 5 Dec 2023 20:33:04 +0200
 Subject: [PATCH 6/7] Make console_font_8x16 weak
@@ -634,10 +634,10 @@ index 21ef8da..40c4740 100644
  	/* 0 0x00 '^@' */
  	0x00, /* 00000000 */
 -- 
-2.47.2
+2.50.1
 
 
-From e66af5e4c69516c363fa185c4a6367b90e603985 Mon Sep 17 00:00:00 2001
+From 9079f26184fa446a574040993d31e753b107bfde Mon Sep 17 00:00:00 2001
 From: novenary <novenary@kwak.zip>
 Date: Tue, 5 Dec 2023 22:07:32 +0200
 Subject: [PATCH 7/7] Make builds deterministic
@@ -652,7 +652,7 @@ This allows consecutive rebuilds to produce identical binaries.
  2 files changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index ccdb5d8..3f2c448 100644
+index 7ba0efd..a67c7de 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -26,10 +26,10 @@ export LIBOGC_MINOR	:= 1
@@ -668,18 +668,18 @@ index ccdb5d8..3f2c448 100644
  
  #---------------------------------------------------------------------------------
 diff --git a/libogc/system.c b/libogc/system.c
-index 69e7016..d8b97db 100644
+index 18b28c0..4b82ce4 100644
 --- a/libogc/system.c
 +++ b/libogc/system.c
-@@ -246,7 +246,6 @@ static sys_resetinfo mem_resetinfo = {
+@@ -221,7 +221,6 @@ static sys_resetinfo mem_resetinfo = {
  	127
  };
  
 -static const char *__sys_versiondate;
  static const char *__sys_versionbuild;
  
- static __inline__ alarm_st* __lwp_syswd_open(syswd_t wd)
-@@ -1036,7 +1035,7 @@ void* __SYS_GetIPCBufferHi(void)
+ static void (*reload)(void) = (void(*)(void))0x80001800;
+@@ -974,7 +973,7 @@ void* __SYS_GetIPCBufferHi(void)
  #endif
  
  void _V_EXPORTNAME(void)
@@ -689,5 +689,5 @@ index 69e7016..d8b97db 100644
  #if defined(HW_RVL)
  void __SYS_DoPowerCB(void)
 -- 
-2.47.2
+2.50.1
 
