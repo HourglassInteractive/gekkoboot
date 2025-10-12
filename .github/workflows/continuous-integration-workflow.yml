@@ -12,8 +12,7 @@ jobs:
     - name: Install packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends build-essential python3-pip p7zip-full clang-format-16
-        pip3 install meson
+        sudo apt-get install -y --no-install-recommends build-essential meson/bookworm-backports 7zip/bookworm-backports clang-format-16
 
     - name: Checkout gekkoboot
       uses: actions/checkout@v4
