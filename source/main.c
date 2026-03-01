@@ -479,6 +479,10 @@ load:
 
 	delay_exit();
 
+	// Turn off Pico onboard LED
+	*(volatile unsigned int *)(0xd0000000) = (1 << 25);
+	*(volatile unsigned int *)(0xd0000014) &= ~(1 << 25);
+
 	SYS_ResetSystem(SYS_SHUTDOWN, 0, FALSE);
 	SYS_SwitchFiber(
 		(intptr_t) dol,
